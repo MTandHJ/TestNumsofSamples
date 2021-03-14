@@ -118,6 +118,15 @@ LEARNING_POLICY = {
         "Default leaning policy will be applied: " \
         "decay the learning rate at 100 and 105 epochs by a factor 10."
     ),
+    "null": (
+        "StepLR",
+        Config(
+            step_size=9999999999999,
+            gamma=1
+        ),
+        "Null leaning policy will be applied: " \
+        "keep the learning rate fixed during training."
+    ),
     "STD": (
         "MultiStepLR",
         Config(
@@ -144,6 +153,15 @@ LEARNING_POLICY = {
         ),
         "TRADES learning policy, an official config, " \
         "decays the learning rate at 75 epochs by factor 10 for total 76 epochs."
+    ),
+    "TRADES-M":(
+        "MultiStepLR",
+        Config(
+            milestones=[55, 75, 90],
+            gamma=0.1
+        ),
+        "TRADES learning policy, an official config for MNIST, " \
+        "decays the learning rate at 55, 75, 90 epochs by factor 10 for total 100 epochs."
     ),
     "cosine":(   
         "CosineAnnealingLR",   

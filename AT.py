@@ -10,7 +10,7 @@ from src.loadopts import *
 
 
 METHOD = "AT"
-SAVE_FREQ = 50
+SAVE_FREQ = 20
 FMT = "{description}={learning_policy}-{optimizer}-{lr}" \
         "={attack}-{epsilon:.4f}-{stepsize}-{steps}" \
         "={batch_size}={transform}"
@@ -19,8 +19,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("model", type=str)
 parser.add_argument("dataset", type=str)
 
-parser.add_argument("--nums", type=int, default=None, 
-                help="the number of training samples per class")
+parser.add_argument("--nums", type=int, default=None)
 
 # adversarial training settings
 parser.add_argument("--attack", type=str, default="pgd-linf")
@@ -41,9 +40,9 @@ parser.add_argument("-beta2", "--beta2", type=float, default=0.999,
 parser.add_argument("-wd", "--weight_decay", type=float, default=5e-4,
                 help="weight decay")
 parser.add_argument("-lr", "--lr", "--LR", "--learning_rate", type=float, default=0.1)
-parser.add_argument("-lp", "--learning_policy", type=str, default="AT", 
+parser.add_argument("-lp", "--learning_policy", type=str, default="default", 
                 help="learning rate schedule defined in config.py")
-parser.add_argument("--epochs", type=int, default=200)
+parser.add_argument("--epochs", type=int, default=110)
 parser.add_argument("-b", "--batch_size", type=int, default=128)
 parser.add_argument("--transform", type=str, default='default', 
                 help="the data augmentation which will be applied during training.")
@@ -69,9 +68,6 @@ def load_cfg():
     model = load_model(opts.model)(num_classes=get_num_classes(opts.dataset))
     device = gpu(model)
 
-    num_samples = get_num_samples(opts.dataset)
-    opts.epochs = int(num_samples * opts.epochs / opts.nums)
-    opts.batch_size = min(opts.nums, opts.batch_size)
     # load the dataset
     trainset = load_dataset(
         dataset_type=opts.dataset, 
@@ -160,12 +156,12 @@ def main(
         if epoch % SAVE_FREQ == 0:
             save_checkpoint(info_path, coach.model, coach.optimizer, coach.learning_policy, epoch)
 
-            train_accuracy, train_success = valider.evaluate(trainloader)
-            valid_accuracy, valid_success = valider.evaluate(testloader)
-            print(f"Train >>> [TA: {train_accuracy:.5f}]    [RA: {1 - train_success:.5f}]")
-            print(f"Test. >>> [TA: {valid_accuracy:.5f}]    [RA: {1 - valid_success:.5f}]")
-            writter.add_scalars("Accuracy", {"train":train_accuracy, "valid":valid_accuracy}, epoch)
-            writter.add_scalars("Success", {"train":train_success, "valid":valid_success}, epoch)
+            # train_accuracy, train_success = valider.evaluate(trainloader)
+            # valid_accuracy, valid_success = valider.evaluate(testloader)
+            # print(f"Train >>> [TA: {train_accuracy:.5f}]    [RA: {1 - train_success:.5f}]")
+            # print(f"Test. >>> [TA: {valid_accuracy:.5f}]    [RA: {1 - valid_success:.5f}]")
+            # writter.add_scalars("Accuracy", {"train":train_accuracy, "valid":valid_accuracy}, epoch)
+            # writter.add_scalars("Success", {"train":train_success, "valid":valid_success}, epoch)
 
         running_loss = coach.adv_train(trainloader, attacker, epoch=epoch)
         writter.add_scalar("Loss", running_loss, epoch)

@@ -10,6 +10,8 @@ import os
 import sys
 
 
+SAVED_FILENAME = "paras.pt"
+
 class AverageMeter:
 
     def __init__(self, name, fmt=".5f"):
@@ -85,7 +87,7 @@ def readme(path, opts, mode="w"):
         fh.write(info)
 
 # load model's parameters
-def load(model, filename, device, strict=True, except_key=None):
+def load(model, path, device, strict=True, except_key=None):
     """
     :param model:
     :param filename:
@@ -93,7 +95,7 @@ def load(model, filename, device, strict=True, except_key=None):
     :param except_key: drop the correspoding key module
     :return:
     """
-
+    filename = os.path.join(path, SAVED_FILENAME)
     if str(device) =="cpu":
         state_dict = torch.load(filename, map_location="cpu")
         

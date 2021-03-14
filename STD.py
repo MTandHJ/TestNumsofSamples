@@ -10,16 +10,15 @@ from src.loadopts import *
 
 
 METHOD = "STD"
-SAVE_FREQ = 50
-FMT = "{description}={nums}={learning_policy}-{optimizer}-{lr}" \
+SAVE_FREQ = 20
+FMT = "{description}={learning_policy}-{optimizer}-{lr}" \
         "={batch_size}={transform}"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("model", type=str)
 parser.add_argument("dataset", type=str)
 
-parser.add_argument("--nums", type=int, default=None, 
-                help="the number of training samples per class")
+parser.add_argument("--nums", type=int, default=None)
 
 # basic settings
 parser.add_argument("--loss", type=str, default="cross_entropy")
@@ -62,27 +61,23 @@ def load_cfg():
     model = load_model(opts.model)(num_classes=get_num_classes(opts.dataset))
     device = gpu(model)
 
-    num_samples = get_num_samples(opts.dataset)
-    opts.epochs = int(num_samples * opts.epochs / opts.nums)
-    opts.batch_size = min(opts.nums, opts.batch_size)
     # load the dataset
     trainset = load_dataset(
         dataset_type=opts.dataset, 
         transform=opts.transform, 
-        train=True,
-        nums=opts.nums
+        train=True
     )
     cfg['trainloader'] = load_dataloader(
         dataset=trainset, 
         batch_size=opts.batch_size, 
         train=True,
+        nums=opts.nums,
         show_progress=opts.progress
     )
     testset = load_dataset(
         dataset_type=opts.dataset,
         transform=opts.transform,
-        train=False
-        nums=None
+        train=False,
     )
     cfg['testloader'] = load_dataloader(
         dataset=testset, 
@@ -143,12 +138,12 @@ def main(
         if epoch % SAVE_FREQ == 0:
             save_checkpoint(info_path, coach.model, coach.optimizer, coach.learning_policy, epoch)
 
-            train_accuracy, train_success = valider.evaluate(trainloader)
-            valid_accuracy, valid_success = valider.evaluate(testloader)
-            print(f"Train >>> [TA: {train_accuracy:.5f}]    [RA: {1 - train_success:.5f}]")
-            print(f"Test. >>> [TA: {valid_accuracy:.5f}]    [RA: {1 - valid_success:.5f}]")
-            writter.add_scalars("Accuracy", {"train":train_accuracy, "valid":valid_accuracy}, epoch)
-            writter.add_scalars("Success", {"train":train_success, "valid":valid_success}, epoch)
+            # train_accuracy, train_success = valider.evaluate(trainloader)
+            # valid_accuracy, valid_success = valider.evaluate(testloader)
+            # print(f"Train >>> [TA: {train_accuracy:.5f}]    [RA: {1 - train_success:.5f}]")
+            # print(f"Test. >>> [TA: {valid_accuracy:.5f}]    [RA: {1 - valid_success:.5f}]")
+            # writter.add_scalars("Accuracy", {"train":train_accuracy, "valid":valid_accuracy}, epoch)
+            # writter.add_scalars("Success", {"train":train_success, "valid":valid_success}, epoch)
 
         running_loss = coach.train(trainloader, epoch=epoch)
         writter.add_scalar("Loss", running_loss, epoch)

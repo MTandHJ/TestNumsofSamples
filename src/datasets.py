@@ -1,26 +1,23 @@
 
 import torch
+from torch.utils.data.sampler import Sampler
 
 
-class SingleSet(torch.utils.data.Dataset):
 
-    def __init__(self, dataset, transform, *, nums=None):
-        """
-        dataset: ...
-        transform: the transformation
-        nums: the number of source images for training
-        """
-        self.data = dataset
-        self.transform = transform
-        self.counts = len(self.data)
-        self.nums = self.counts if nums is None else nums
-        assert self.nums < self.counts, \
-            f"The nums of needed {self.nums} less than maximum {self.counts}."
-        print(f"Set the number of source images for training: {nums}")
+class ReplaceableSubsetSampler(Sampler):
 
+    def __init__(self, source_data, nums):
+        self.source_data = source_data
+        self.nums = nums if nums is not None else len(self.source_data)
+        assert len(source_data) >= self.nums, "The given number is bigger than the owned."
+
+    def __iter__(self):
+        n = len(self.source_data)
+        idx = torch.randint(high=self.nums, size=(n, ), dtype=torch.int64)
+        rdx = torch.randperm(n)
+        return iter(idx[rdx].tolist())
+    
     def __len__(self):
-        return self.nums
+        return len(self.source_data)
 
-    def __getitem__(self, index):
-        img, label = self.data[index]
-        return self.transform(img), label
+

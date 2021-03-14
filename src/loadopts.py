@@ -29,15 +29,6 @@ def get_num_classes(dataset_type: str):
         raise DatasetNotIncludeError("Dataset {0} is not included." \
                         "Refer to the following: {1}".format(dataset_type, _dataset.__doc__))
 
-def get_num_samples(dataset_type: str):
-    if dataset_type in ("cifar10", "cifar100"):
-        return 5000
-    elif dataset_type in ("mnist", ):
-        return 6000
-    else:
-        raise DatasetNotIncludeError("Dataset {0} is not included." \
-                        "Refer to the following: {1}".format(dataset_type, _dataset.__doc__))
-
 
 def load_model(model_type: str):
     """
@@ -45,14 +36,14 @@ def load_model(model_type: str):
     cifar: the model designed for CIFAR dataset
     resnet20|32|44|110|1202
     resnet18|34|50|101|50_32x4d
-    wrn-28-10: depth-28, width-10
-    wrn-34-10: depth-34, width-10
-    wrn-34-20: depth-34, width-20
+    wrn_28_10: depth-28, width-10
+    wrn_34_10: depth-34, width-10
+    wrn_34_20: depth-34, width-20
     """
     resnets = ['resnet20', 'resnet32', 'resnet44', 
                 'resnet56', 'resnet110', 'resnet1202']
     srns = ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnext50_32x4d']
-    wrns = ['wrn-28-10', 'wrn-34-10', 'wrn-34-20']
+    wrns = ['wrn_28_10', 'wrn_34_10', 'wrn_34_20']
 
     if model_type == "mnist":
         from models.mnist import MNIST
@@ -185,13 +176,8 @@ def load_normalizer(dataset_type: str):
     return normalizer
 
 
-def load_dataset(dataset_type: str, transform='default', train=True, nums=None):
+def load_dataset(dataset_type: str, transform='default', train=True):
     dataset = _dataset(dataset_type, transform, train)
-    from .datasets import SingleSet
-    dataset = SingleSet(
-        dataset=dataset, transform=lambda x: x,
-        nums=nums
-    )
     return dataset
 
 
@@ -205,11 +191,13 @@ class _TQDMDataLoader(torch.utils.data.DataLoader):
         )
 
 
-def load_dataloader(dataset, batch_size: int, train=True, show_progress=False):
+def load_dataloader(dataset, batch_size: int, train=True, show_progress=False, nums=None):
+    from .datasets import ReplaceableSubsetSampler
+    sampler = ReplaceableSubsetSampler(dataset, nums)
     dataloader = _TQDMDataLoader if show_progress else torch.utils.data.DataLoader
     if train:
-        dataloader = dataloader(dataset, batch_size=batch_size,
-                                        shuffle=True, num_workers=NUM_WORKERS,
+        dataloader = dataloader(dataset, batch_size=batch_size, sampler=sampler,
+                                        shuffle=False, num_workers=NUM_WORKERS,
                                         pin_memory=PIN_MEMORY)
     else:
         dataloader = dataloader(dataset, batch_size=batch_size,
@@ -257,10 +245,12 @@ def load_learning_policy(
     **kwargs
 ):
     """
-    default: (100, 105), 110 epochs
-    STD: (82, 123), 200 epochs
-    AT: (102, 154), 200 epochs
-    TRADES: (75, 90, 100), 76 epochs
+    default: (100, 105), 110 epochs suggested
+    null:
+    STD: (82, 123), 200 epochs suggested
+    AT: (102, 154), 200 epochs suggested
+    TRADES: (75, 90, 100), 76 epochs suggested
+    TRADES-M: (55, 75, 90), 100 epochs suggested
     cosine: CosineAnnealingLR, kwargs: T_max, eta_min, last_epoch
     """
     try:
