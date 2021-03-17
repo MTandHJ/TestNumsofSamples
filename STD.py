@@ -11,7 +11,7 @@ from src.loadopts import *
 
 METHOD = "STD"
 SAVE_FREQ = 20
-FMT = "{description}={learning_policy}-{optimizer}-{lr}" \
+FMT = "{description}={nums}-{learning_policy}-{optimizer}-{lr}" \
         "={batch_size}={transform}"
 
 parser = argparse.ArgumentParser()

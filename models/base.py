@@ -24,23 +24,6 @@ class AdversarialDefensiveModel(ADType, nn.Module):
             if isinstance(module, ADType):
                 module.attack(mode)
 
-# register cls as ADType
-def register_ADType(cls):
-    def attack(self, mode=True):
-        # enter attacking mode
-        self.attacking = mode
-        for module in self.children():
-            if isinstance(module, ADType):
-                module.attack(mode)
-
-    def defense(self):
-        # exit attacking mode
-        self.attack(False)
-    
-    setattr(cls, "attacking", False)
-    setattr(cls, "attack", attack)
-    setattr(cls, "defense", defense)
-    ADType.register(cls)
 
 
 

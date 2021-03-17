@@ -11,7 +11,7 @@ from src.loadopts import *
 
 METHOD = "AT"
 SAVE_FREQ = 20
-FMT = "{description}={learning_policy}-{optimizer}-{lr}" \
+FMT = "{description}={nums}-{learning_policy}-{optimizer}-{lr}" \
         "={attack}-{epsilon:.4f}-{stepsize}-{steps}" \
         "={batch_size}={transform}"
 
@@ -73,19 +73,18 @@ def load_cfg():
         dataset_type=opts.dataset, 
         transform=opts.transform, 
         train=True,
-        nums=opts.nums
     )
     cfg['trainloader'] = load_dataloader(
         dataset=trainset, 
         batch_size=opts.batch_size, 
         train=True,
+        nums=opts.nums,
         show_progress=opts.progress
     )
     testset = load_dataset(
         dataset_type=opts.dataset,
         transform=opts.transform,
-        train=False,
-        nums=None
+        train=False
     )
     cfg['testloader'] = load_dataloader(
         dataset=testset, 
